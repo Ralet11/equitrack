@@ -134,6 +134,7 @@ const AccidentModal = ({ modalVisible, setModalVisible }) => {
     }
 
     useEffect(() => {
+      
         switch (accident.type) {
             case 'lost':
                 //aca haria que muestre otros input y cambie el fieldErros por los campos correspondientes

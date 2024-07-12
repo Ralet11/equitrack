@@ -2,11 +2,14 @@ const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const express = require('express');
+const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const horseRoutes = require('./routes/horseRoutes');
 const breedRoutes = require('./routes/breedRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const activityTypeRoutes = require('./routes/activityTypeRoutes');
 const sequelize = require('./sequelize');
 
 const app = express();
@@ -14,12 +17,15 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware para manejar el cuerpo de las solicitudes JSON
 app.use(bodyParser.json());
+app.use(morgan('dev'))
 
 // Rutas
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/horses", horseRoutes);
 app.use("/api/breeds", breedRoutes);
+app.use("/api/activities", activityRoutes);
+app.use("/api/activityTypes", activityTypeRoutes);
 
 // Manejar rutas no encontradas
 app.use((req, res) => {
@@ -37,7 +43,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Rechazo de promesa no manejado:', promise, 'razón:', reason);
 });
 
-sequelize.sync({ force: false }).then(() => {
+sequelize.sync({ force: true }).then(() => {
     // Iniciar el servidor
     app.listen(PORT, () => {
         console.log(`Servidor iniciado en http://localhost:${PORT}`);

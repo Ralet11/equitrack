@@ -42,7 +42,7 @@ export const horsesSlice = createSlice({
       }
     },
     deleteHorseById: (state, action) => {
-      console.log("deleteAction")
+   
       const id = action.payload;
       state.horses = state.horses.filter(horse => horse.id !== id);
     }

@@ -1,12 +1,26 @@
 import { combineReducers } from '@reduxjs/toolkit';
 import userSlice from './slices/userSlice';
-import horsesSlice from './slices/horseSlice'
-import breedsSlice from './slices/breedSlice'
+import horsesSlice from './slices/horseSlice';
+import breedsSlice from './slices/breedSlice';
+import activitySlice from './slices/activitySlice';
+import activityTypesSlice from './slices/activityTypeSlice';
 
-const rootReducer = combineReducers({
+// Definir la acción de deslogueo
+export const logout = () => ({ type: 'LOGOUT' });
+
+const appReducer = combineReducers({
   user: userSlice,
   horses: horsesSlice,
   breeds: breedsSlice,
+  activities: activitySlice,
+  activityTypes: activityTypesSlice,
 });
+
+const rootReducer = (state, action) => {
+  if (action.type === 'LOGOUT') {
+    state = undefined;
+  }
+  return appReducer(state, action);
+};
 
 export default rootReducer;

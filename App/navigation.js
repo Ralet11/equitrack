@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useColorScheme } from 'react-native';
 import { useSelector } from 'react-redux';
-import { FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
 import LogoScreen from './screens/LogoScreen';
 import LoginScreen from './screens/LoginScreen';
@@ -30,12 +30,14 @@ function TabNavigator() {
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home';
           } else if (route.name === 'Pet') {
-            iconName = focused ? 'paw' : 'paw';
+            iconName = focused ? 'horse-variant' : 'horse-variant';
           } else if (route.name === 'Profile') {
-            iconName = focused ? 'user' : 'user';
+            iconName = focused ? 'account' : 'account';
+          }else if (route.name === 'Historial') {
+            iconName = focused ? 'folder-multiple' : 'folder-multiple';
           }
 
-          return <FontAwesome name={iconName} size={size} color={color} />;
+          return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: 'tomato',
         tabBarInactiveTintColor: 'gray',
@@ -52,12 +54,17 @@ function TabNavigator() {
       <Tab.Screen
         name="Pet"
         component={HorsesScreen}
-        options={{ tabBarLabel: 'Horses' }}
+        options={{ tabBarLabel: 'Palenque' }}
+      />
+      <Tab.Screen
+        name="Historial"
+        component={ProfileScreen}
+        options={{ tabBarLabel: 'Historial' }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
+        options={{ tabBarLabel: 'Coach' }}
       />
     </Tab.Navigator>
   );
@@ -65,8 +72,7 @@ function TabNavigator() {
 
 const Navigation = () => {
   const token = useSelector((state) => state.user.token);
-  //const initialRoute = token ? 'Main' : 'Login';
-  const initialRoute = 'Login';
+  const initialRoute = token ? 'Main' : 'Login';
 
   return (
     <NavigationContainer>
@@ -90,7 +96,5 @@ const Navigation = () => {
     </NavigationContainer>
   );
 }
-
-
 
 export default Navigation;

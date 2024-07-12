@@ -4,6 +4,9 @@ import { API_URL } from "@env";
 import { getBreeds } from './breedApi';
 import { getHorsesByUser } from './horseApi';
 import { setuser } from '../redux/slices/userSlice';
+import { getActivityTypes } from './activitiesApi';
+
+
 
 export const loginUser = async (email, password, dispatch) => {
     const data = {
@@ -22,11 +25,10 @@ export const loginUser = async (email, password, dispatch) => {
             dispatch(setuser(userData));
 
             const resultBreeds = await getBreeds(dispatch);
-
+            const resultActivities = await getActivityTypes(dispatch)
             const resultHorses = await getHorsesByUser(userData, dispatch);
 
-            console.log(resultHorses);
-
+          
             return true;
         } else {
             Alert.alert("Email o contraseña invalido");

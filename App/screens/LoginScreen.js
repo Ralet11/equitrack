@@ -48,9 +48,12 @@ const LoginScreen = () => {
 
             <View style={styles.contentContainer}>
                 <View style={styles.titleContainer}>
-                    <Animated.Text entering={FadeInUp.duration(1000).springify()} style={styles.titleText}>
+                   <TouchableOpacity onPress={() => setLoginUserState({email: "ramiro.alet@gmail.com",
+        password: "123"})}>
+                   <Animated.Text entering={FadeInUp.duration(1000).springify()} style={styles.titleText}>
                         {t('login')}
                     </Animated.Text>
+                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.inputContainer}>
@@ -60,6 +63,7 @@ const LoginScreen = () => {
                             placeholderTextColor={"gray"}
                             onChangeText={(text) => handleChange("email", text)}
                             style={styles.input}
+                            value={loginUserState.email}
                         />
                     </Animated.View>
 
@@ -70,6 +74,7 @@ const LoginScreen = () => {
                             onChangeText={(text) => handleChange("password", text)}
                             secureTextEntry
                             style={styles.input}
+                            value={loginUserState.password}
                         />
                     </Animated.View>
 
