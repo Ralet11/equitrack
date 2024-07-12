@@ -15,9 +15,9 @@ import TitleText from './TitleText';
 import { checkInternetConnection } from '../helpers/syncHelper';
 import { useNavigation } from '@react-navigation/native';
 import { clearHorses, clearHorsesForUpdate, editHorseById, setHorses, setHorsesForUpdate, setUpdate } from '../redux/slices/horseSlice';
-import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-const AnimatedTextInput = ({ label, placeholder, value = '', onChangeText, error }) => {
+const AnimatedTextInput = ({ label, value = '', onChangeText, error }) => {
     const isFocused = useSharedValue(false);
 
     const animatedLabelStyle = useAnimatedStyle(() => {
@@ -25,7 +25,6 @@ const AnimatedTextInput = ({ label, placeholder, value = '', onChangeText, error
             top: isFocused.value || value ? -20 : 10,
             fontSize: isFocused.value || value ? 14 : 16,
             color: isFocused.value || value ? 'gray' : 'gray',
-            backgroundColor: 'transparent',
         };
     });
 
@@ -46,7 +45,6 @@ const AnimatedTextInput = ({ label, placeholder, value = '', onChangeText, error
                 value={value}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                placeholder={isFocused.value ? '' : placeholder}
                 onChangeText={onChangeText}
                 style={[styles.textInput, { backgroundColor: error ? '#fff5f5' : '#f0f0f0' }]}
             />
@@ -156,9 +154,6 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         if (!horse.type_horse_id) {
             errors.type_horse_id = 'Tipo es requerido';
         }
-      /*   if (!horse.breed_id) {
-            errors.breed_id = 'Raza es requerida';
-        } */
         if (!horse.birthdate) {
             errors.birthdate = 'Fecha de nacimiento es requerida';
         }
@@ -237,7 +232,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     };
 
     const handleSubmit = async () => {
-        const errors =/*  validateFields() */ false
+        const errors = validateFields()
         if (Object.keys(errors).length === 0) {
             setIsLoadingForm(true);
             if (editHorse) {
@@ -271,7 +266,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         }
     };
 
-    useEffect(() => {
+    /* useEffect(() => {
+        
         if (horse.type_horse_id) {
             fetchAllBreeds(horse.type_horse_id);
         } else {
@@ -280,15 +276,18 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     }, [horse.type_horse_id]);
 
     useEffect(() => {
+       
         if (selectedImage)
             handleChange('image_profile', selectedImage);
-    }, [selectedImage]);
+    }, [selectedImage]); */
 
     useEffect(() => {
+      
         setHorse(editHorse ? editHorse : initialHorseState);
     }, [editHorse]);
 
-    useEffect(() => {
+   /*  useEffect(() => {
+     
         const fetchAllTypes = async () => {
             try {
                 const response = await axios.get(`${API_URL}/types_horse/get`, {
@@ -304,7 +303,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
             }
         };
         fetchAllTypes();
-    }, []);
+    }, []); */
 
     return (
         <View>
@@ -316,74 +315,56 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                     setModalVisible(!modalVisible);
                 }}>
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                    <View className="m-4 flex-1" style={styles.centeredView}>
-                        <View className="w-full h-full bg-white" style={styles.modalView}>
-
+                    <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
                             <Pressable
-                                className="absolute right-0 m-4 z-10 "
+                                style={styles.closeButton}
                                 onPress={() => modalClose()}>
                                 <Ionicons name="close-circle-outline" color="#808080" size={48} />
                             </Pressable>
 
-                            <View style={{ marginTop: -10 }} className="flex w-full mb-6">
-                                <TitleText style={{ fontSize: 26, color: "#808080" }}>{editHorse !== null ? 'Editar ' : 'Agregar '} Caballo</TitleText>
+                            <View style={styles.titleContainer}>
+                                <TitleText style={styles.titleText}>{editHorse !== null ? 'Editar ' : 'Agregar '} Caballo</TitleText>
                             </View>
-                            <View className="flex items-center mx-4 space-y-4 w-full">
-                                <View className="rounded-2xl w-full items-center">
-                                </View>
-                                <View className="flex flex-row">
-                                    <View className="flex-1 mr-2">
-                                        <AnimatedTextInput
-                                            label="Nombre"
-                                            placeholder="Nombre"
-                                            value={horse.name}
-                                            onChangeText={(text) => handleChange("name", text)}
-                                            error={fieldErrors.name}
-                                        />
-                                    </View>
-                                </View>
+                            <View style={styles.formContainer}>
+                                <AnimatedTextInput
+                                    label="Nombre"
+                                    value={horse.name}
+                                    onChangeText={(text) => handleChange("name", text)}
+                                    error={fieldErrors.name}
+                                />
                                 <Text style={styles.labelPicker}>Tipo de raza</Text>
-                                <View className={`bg-black/5 p-3 rounded-2xl w-full ${fieldErrors.breed_id ? "border border-orange-500" : ""}`}>
-                                    
+                                <View style={[styles.pickerContainer, fieldErrors.breed_id ? styles.errorBorder : null]}>
                                     <Picker
-                                   
                                         style={styles.picker}
                                         onValueChange={(itemValue, itemIndex) =>
                                             handleChange("breed_id", itemValue)
                                         }
                                         selectedValue={horse.breed_id ? horse.breed_id.toString() : ""}
                                     >
-                                        <Picker.Item className="text-gray-500"  style={{ fontSize: 14 }} label='Seleccionar' value='' />
+                                        <Picker.Item style={styles.pickerItem} label='Seleccionar' value='' />
                                         {allBreeds.map((item) => (
-                                            <Picker.Item className="text-gray-500" style={{ fontSize: 14 }} key={item.key} label={item.value} value={item.key} />
+                                            <Picker.Item style={styles.pickerItem} key={item.key} label={item.value} value={item.key} />
                                         ))}
                                     </Picker>
                                 </View>
-                                <View className="flex flex-row">
-                                    <View className="flex-1 mr-2">
-                                        <AnimatedTextInput
-                                            label="Color"
-                                            placeholder="Color"
-                                            value={horse.color}
-                                            onChangeText={(text) => handleChange("color", text)}
-                                            error={fieldErrors.color}
-                                        />
-                                    </View>
-                                    <View className="flex-1 ml-2">
-                                        <AnimatedTextInput
-                                            label="Peso"
-                                            placeholder="Peso"
-                                            value={horse.weight ? horse.weight.toString() : ""}
-                                            onChangeText={(text) => handleChange("weight", text)}
-                                            keyboardType='numeric'
-                                            error={fieldErrors.weight}
-                                        />
-                                    </View>
-                                </View>
+                                <AnimatedTextInput
+                                    label="Color"
+                                    value={horse.color}
+                                    onChangeText={(text) => handleChange("color", text)}
+                                    error={fieldErrors.color}
+                                />
+                                <AnimatedTextInput
+                                    label="Peso"
+                                    value={horse.weight ? horse.weight.toString() : ""}
+                                    onChangeText={(text) => handleChange("weight", text)}
+                                    keyboardType='numeric'
+                                    error={fieldErrors.weight}
+                                />
                                 <Text style={styles.labelPicker}>Fecha de nacimiento</Text>
-                                <View className={`bg-black/5 p-3 rounded-2xl w-full ${fieldErrors.birthdate ? "border border-orange-500" : ""}`}>
+                                <View style={[styles.datePickerContainer, fieldErrors.birthdate ? styles.errorBorder : null]}>
                                     <TouchableOpacity onPress={showDatePicker} style={styles.datePicker}>
-                                        <Text className="text-gray-500">{horse.birthdate ? moment(horse.birthdate).format('DD/MM/YYYY') : "Ingresar"}</Text>
+                                        <Text style={styles.datePickerText}>{horse.birthdate ? moment(horse.birthdate).format('DD/MM/YYYY') : "Ingresar"}</Text>
                                     </TouchableOpacity>
                                 </View>
 
@@ -394,24 +375,23 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                                     onCancel={hideDatePicker}
                                 />
 
-                                <View className="w-full">
+                                <View style={styles.submitButtonContainer}>
                                     {!isLoadingForm ? (
-                                        <TouchableOpacity onPress={handleSubmit} className="w-full bg-current2 p-3 rounded-2xl mb-3">
-                                            <Text className="text-xl font-bold text-white text-center">
+                                        <TouchableOpacity onPress={handleSubmit} style={styles.submitButton}>
+                                            <Text style={styles.submitButtonText}>
                                                 {editHorse ? "Editar caballo" : "Registrar caballo"}
                                             </Text>
                                         </TouchableOpacity>
                                     ) : (
                                         <SpinnerLoader />
                                     )}
-
-                                    {isConnected !== null && (
-                                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
-                                            Conexión: {isConnected ? 'true' : 'false'}
-                                        </Text>
-                                    )}
-
                                 </View>
+
+                                {isConnected !== null && (
+                                    <Text style={styles.connectionText}>
+                                        Conexión: {isConnected ? 'true' : 'false'}
+                                    </Text>
+                                )}
                             </View>
                         </View>
                     </View>
@@ -419,7 +399,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                 <Toast config={toastConfig} />
             </Modal>
 
-            <ImagePickerModal modalVisible={modalImageVisible} setModalVisible={setModalImageVisible} setSelectedImage={setSelectedImage} ></ImagePickerModal>
+            <ImagePickerModal modalVisible={modalImageVisible} setModalVisible={setModalImageVisible} setSelectedImage={setSelectedImage} />
         </View>
     );
 };
@@ -427,14 +407,16 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
 const styles = StyleSheet.create({
     picker: {},
     centeredView: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 22
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalView: {
-        margin: 20,
+        width: '90%',
+        backgroundColor: 'white',
         borderRadius: 20,
-        padding: 35,
+        padding: 20,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
@@ -445,39 +427,32 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
-    button: {
-        borderRadius: 20,
-        padding: 10,
-        elevation: 2,
+    closeButton: {
+        alignSelf: 'flex-end',
     },
-    buttonOpen: {
-        backgroundColor: '#F194FF',
+    titleContainer: {
+        marginBottom: 20,
     },
-    buttonClose: {
-        backgroundColor: '#2196F3',
+    titleText: {
+        fontSize: 26,
+        color: "#808080",
     },
-    textStyle: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    modalText: {
-        marginBottom: 15,
-        textAlign: 'center',
-    },
-    label: {
-        position: 'absolute',
-        left: 10,
-        top: 10,
-        zIndex: 1,
-        paddingHorizontal: 5,
-        backgroundColor: 'transparent',
-        color: 'gray',
-        fontSize: 16,
+    formContainer: {
+        width: '100%',
     },
     labelPicker: {
         fontSize: 16,
         color: 'gray',
+        marginTop: 10,
+        marginBottom: 5,
+    },
+    pickerContainer: {
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        marginBottom: 10,
+    },
+    pickerItem: {
+        fontSize: 14,
     },
     inputContainer: {
         marginVertical: 12,
@@ -486,6 +461,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f0f0',
         borderRadius: 10,
         padding: 5,
+        borderWidth: 1,
+        borderColor: '#ccc',
     },
     textInput: {
         height: 40,
@@ -494,15 +471,44 @@ const styles = StyleSheet.create({
         color: 'black',
         borderRadius: 10,
     },
+    datePickerContainer: {
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        marginBottom: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 5,
+        alignItems: 'center',
+    },
     datePicker: {
         paddingVertical: 10,
         paddingHorizontal: 5,
-        backgroundColor: '#f0f0f0',
         borderRadius: 10,
+    },
+    datePickerText: {
+        color: 'gray',
+    },
+    submitButtonContainer: {
+        width: '100%',
+        marginTop: 20,
+    },
+    submitButton: {
+        backgroundColor: '#FF6F61',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    submitButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     errorBorder: {
         borderWidth: 1,
         borderColor: 'red',
+    },
+    connectionText: {
+        textAlign: 'center',
+        marginTop: 10,
     },
 });
 

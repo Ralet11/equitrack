@@ -13,7 +13,7 @@ export const getBreeds = async (dispatch) => {
 
         return false;
     } catch (error) {
-        console.error('Error fetching horses:', error);
+        console.error('Error fetching breeds:', error);
         throw error;
     }
 };

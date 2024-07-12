@@ -3,6 +3,7 @@ import { View, Image } from 'react-native';
 
 const LogoScreen = ({navigation}) => {
     useEffect(() => {
+
         const navigationTimer = setTimeout(() => {
           clearTimeout(navigationTimer);
           navigation.navigate('Login');

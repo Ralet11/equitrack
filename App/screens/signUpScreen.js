@@ -64,6 +64,7 @@ const SignUpScreen = () => {
     }
 
     useEffect(() => {
+      
         setError('');
     }, [userData])
 

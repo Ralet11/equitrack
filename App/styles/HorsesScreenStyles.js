@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     right: 10,
     left: 10,
   },
- addButtonContainer: {
+  addButtonContainer: {
     position: 'absolute',
     top: 700, // Ajusta este valor según sea necesario para que el botón quede más arriba
     right: 130,
@@ -147,12 +147,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6F61',
     padding: 10,
     borderRadius: 10,
-},
-addButtonText: {
+  },
+  addButtonText: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: 'bold',
-},
+  },
+  // Estilos adicionales para la vista vacía
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#888',
+  },
 });
 
 export default styles;

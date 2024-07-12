@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../sequelize');
 
-const Breed = sequelize.define('Breed', {
+const ActivityType = sequelize.define('ActivityType', {
   id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -10,8 +10,12 @@ const Breed = sequelize.define('Breed', {
   },
   name: {
     type: DataTypes.STRING(45),
-    allowNull: true,
-  }
+    allowNull: false,
+  },
+  time: {
+    type: DataTypes.STRING(45),
+    allowNull: false,
+  },
 });
 
-module.exports = Breed;
+module.exports = ActivityType;

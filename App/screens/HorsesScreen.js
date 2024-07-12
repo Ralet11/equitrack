@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, Image, FlatList, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setHorses, setHorsesForUpdate, setUpdate, deleteHorseById, editHorseById } from '../redux/slices/horseSlice';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -17,12 +17,77 @@ const HorsesScreen = () => {
   const [horseToEdit, setHorseToEdit] = useState(null);
   const [auxDelete, setAuxDelete] = useState(false);
 
-  console.log(horses);
+
+  useEffect(() => {
+    if (horses.length === 0) {
+      const initialHorses = [
+        {
+          id: 1,
+          name: 'Thunder',
+          type_horse_id: 1,
+          breed_id: 1,
+          image_profile: 'https://concepto.de/wp-content/uploads/2021/07/caballos-e1626738224231.jpg',
+          birthdate: '2015-05-01',
+          color: 'Bay',
+          weight: 500,
+          favorite: false,
+        },
+        {
+          id: 2,
+          name: 'Blaze',
+          type_horse_id: 2,
+          breed_id: 2,
+          image_profile: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSz-xd-q_9Fb8uozs5vtQ8aftWBwcEymV4XWA&s',
+          birthdate: '2016-08-15',
+          color: 'Chestnut',
+          weight: 450,
+          favorite: false,
+        },
+        {
+          id: 3,
+          name: 'Shadow',
+          type_horse_id: 3,
+          breed_id: 3,
+          image_profile: 'https://www.petdarling.com/wp-content/uploads/2021/01/caballo-pura-raza-espanola-768x576.jpg',
+          birthdate: '2014-03-22',
+          color: 'Black',
+          weight: 520,
+          favorite: false,
+        },
+        {
+          id: 4,
+          name: 'Star',
+          type_horse_id: 4,
+          breed_id: 4,
+          image_profile: 'https://cdn.pixabay.com/photo/2014/11/30/14/11/horse-551191_960_720.jpg',
+          birthdate: '2017-11-30',
+          color: 'White',
+          weight: 480,
+          favorite: false,
+        },
+        {
+          id: 5,
+          name: 'Storm',
+          type_horse_id: 5,
+          breed_id: 5,
+          image_profile: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/Caballo_cuarto_de_milla_sorrel.JPG',
+          birthdate: '2018-07-19',
+          color: 'Sorrel',
+          weight: 470,
+          favorite: false,
+        },
+      ];
+      initialHorses.forEach((horse) => {
+        dispatch(setHorses(horse));
+      });
+    }
+  }, [horses, dispatch]);
+
 
   const handleDeleteHorse = async (horse) => {
-    console.log("delete");
+    
     const connexion = await checkInternetConnection();
-    console.log(connexion);
+
     if (connexion) {
       try {
         const response = await deleteHorse(horse.id);
@@ -31,7 +96,7 @@ const HorsesScreen = () => {
         console.error('Error deleting horse:', error);
       }
     } else {
-      console.log("delete sin conexionr");
+
       const deletedHorse = {
         ...horse,
         delete: true,
@@ -112,10 +177,9 @@ const HorsesScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-
         <View style={styles.headerOverlay} />
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Mis caballos</Text>
+          <Text style={styles.headerTitle}>Palenque</Text>
           <View style={styles.searchContainer}>
             <Icon name="search" size={24} color="#CCC" style={styles.searchIcon} />
             <TextInput
@@ -126,17 +190,21 @@ const HorsesScreen = () => {
           </View>
         </View>
       </View>
-      <FlatList
-        data={horses}
-        renderItem={renderHorseCard}
-        keyExtractor={(item) => item.name}
-        contentContainerStyle={styles.list}
-      />
-
-      <TouchableOpacity style={styles.addButtonContainer} onPress={() => setEditHorseModalVisible(true)}>
+      {horses.length > 0 ? (
+        <FlatList
+          data={horses}
+          renderItem={renderHorseCard}
+          keyExtractor={(item) => item.name}
+          contentContainerStyle={styles.list}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No hay caballos disponibles</Text>
+        </View>
+      )}
+      <TouchableOpacity style={styles.addButtonContainer} onPress={openAddModal}>
         <Text style={styles.addButtonText}>Agregar Caballo</Text>
       </TouchableOpacity>
-
       <HorseModal
         modalVisible={editHorseModalVisible}
         setModalVisible={setEditHorseModalVisible}
@@ -147,4 +215,5 @@ const HorsesScreen = () => {
     </View>
   );
 };
+
 export default HorsesScreen;

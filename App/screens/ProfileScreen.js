@@ -7,22 +7,32 @@ import { setuser } from '../redux/slices/userSlice';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImagePickerModal from '../components/ImagePickerModal';
 import TouchButton from '../components/profile/TouchButton';
+import { logout } from '../redux/rootReducer';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileScreen = () => {
 
     const dispatch = useDispatch()
+    const navigation = useNavigation()
 
     const user = useSelector((state) => state.user);
     
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const[ aux, setAux] = useState(true)
 
     const imageUri = user.image_profile ?
             { uri: BUCKET_URL + 'profiles/users/' + user.image_profile } : require("../assets/images/pet_default.jpg");
 
     useEffect(() => {
+    
         handleSubmit(selectedImage);
     }, [selectedImage]);
+
+    useEffect(() => {
+        dispatch(logout())
+        navigation.navigate('Login')
+    },[aux])
 
     const handleSubmit = async (image) => {
 
