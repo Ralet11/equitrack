@@ -12,8 +12,10 @@ const HomeScreen = () => {
   const horses = useSelector((state) => state.horses.horses);
   const activityTypes = useSelector((state) => state.activityTypes.activityTypes);
   const currentActivity = useSelector((state) => state.activities.currentActivity);
+
   const dispatch = useDispatch();
 
+  console.log(horses)
   const [modalVisible, setModalVisible] = useState(true);
   const [selectedHorse, setSelectedHorse] = useState(null);
   const [isCollectingData, setIsCollectingData] = useState(false);

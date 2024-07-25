@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../sequelize');
-const Breed = require('./breedModel');
+const Note = require('./noteModel'); // Asegúrate de importar Note
 
 const Horse = sequelize.define('Horse', {
   id: {
@@ -33,8 +33,12 @@ const Horse = sequelize.define('Horse', {
     type: DataTypes.STRING(50),
     allowNull: true,
   },
+  weight: {
+    type: DataTypes.FLOAT,
+    allowNull: true,
+  }
 });
 
-Horse.belongsTo(Breed, { foreignKey: 'breed_id' });
+Horse.hasMany(Note, { foreignKey: 'horse_id' });
 
 module.exports = Horse;

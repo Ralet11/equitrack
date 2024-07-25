@@ -10,6 +10,7 @@ const horseRoutes = require('./routes/horseRoutes');
 const breedRoutes = require('./routes/breedRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const activityTypeRoutes = require('./routes/activityTypeRoutes');
+const noteRoutes = require('./routes/noteRoutes')
 const sequelize = require('./sequelize');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use("/api/horses", horseRoutes);
 app.use("/api/breeds", breedRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/activityTypes", activityTypeRoutes);
+app.use("/api/notes", noteRoutes);
 
 // Manejar rutas no encontradas
 app.use((req, res) => {
@@ -43,7 +45,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Rechazo de promesa no manejado:', promise, 'razón:', reason);
 });
 
-sequelize.sync({ force: true }).then(() => {
+sequelize.sync({ force: false }).then(() => {
     // Iniciar el servidor
     app.listen(PORT, () => {
         console.log(`Servidor iniciado en http://localhost:${PORT}`);

@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, StatusBar } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
@@ -13,6 +13,8 @@ import HorsesScreen from './screens/HorsesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ProfileEditScreen from './screens/ProfileEditScreen';
 import styles from './styles/NavigationStyles';
+import HorseDetail from './screens/HorseDetail';
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -71,11 +73,13 @@ function TabNavigator() {
 }
 
 const Navigation = () => {
+  const scheme = useColorScheme();
   const token = useSelector((state) => state.user.token);
   const initialRoute = token ? 'Main' : 'Login';
 
   return (
     <NavigationContainer>
+     <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor="#FFF" />
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{
@@ -92,6 +96,7 @@ const Navigation = () => {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="SignUp2" component={SignUpScreen2} />
         <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+        <Stack.Screen name="HorseDetail" component={HorseDetail} />
       </Stack.Navigator>
     </NavigationContainer>
   );
