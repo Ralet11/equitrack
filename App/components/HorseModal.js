@@ -1,30 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Pressable, TextInput, ScrollView, Alert } from 'react-native';
-import { API_URL, BUCKET_URL } from "@env";
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Pressable, TextInput, ScrollView, Image, Dimensions } from 'react-native';
+import { API_URL } from "@env";
 import axios from 'react-native-axios';
 import { useDispatch, useSelector } from 'react-redux';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment';
 import SpinnerLoader from './SpinnerLoader';
 import Toast, { BaseToast } from 'react-native-toast-message';
-import ImagePickerModal from './ImagePickerModal';
 import TitleText from './TitleText';
+import ImagePickerModal from './ImagePickerModal';
 import { checkInternetConnection } from '../helpers/syncHelper';
-import { useNavigation } from '@react-navigation/native';
 import { clearHorses, clearHorsesForUpdate, editHorseById, setHorses, setHorsesForUpdate, setUpdate } from '../redux/slices/horseSlice';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
-const AnimatedTextInput = ({ label, value = '', onChangeText, error }) => {
+const AnimatedTextInput = ({ label, value = '', onChangeText, error, placeholder }) => {
     const isFocused = useSharedValue(false);
 
     const animatedLabelStyle = useAnimatedStyle(() => {
         return {
-            top: isFocused.value || value ? -20 : 10,
-            fontSize: isFocused.value || value ? 14 : 16,
-            color: isFocused.value || value ? 'gray' : 'gray',
+            top: withTiming(isFocused.value || value ? -14 : 10),
+            fontSize: withTiming(isFocused.value || value ? 12 : 16),
+            color: withTiming(isFocused.value || value ? 'gray' : 'gray'),
+            backgroundColor: '#f0f0f0',
+            borderRadius: 10,
+            paddingHorizontal: 5,
+            borderWidth: 1,
+            borderColor: '#ccc',
         };
     });
 
@@ -46,6 +49,7 @@ const AnimatedTextInput = ({ label, value = '', onChangeText, error }) => {
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 onChangeText={onChangeText}
+                placeholder={placeholder}
                 style={[styles.textInput, { backgroundColor: error ? '#fff5f5' : '#f0f0f0' }]}
             />
         </View>
@@ -54,15 +58,18 @@ const AnimatedTextInput = ({ label, value = '', onChangeText, error }) => {
 
 const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit, editHorse = null }) => {
     const user = useSelector((state) => state.user);
+    const breeds = useSelector((state) => state.breeds.breeds);
+    const horsesForUpdate = useSelector((state) => state.horses.horsesForUpdate)
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isLoadingForm, setIsLoadingForm] = useState(false);
     const [modalImageVisible, setModalImageVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [isConnected, setIsConnected] = useState(null);
     const dispatch = useDispatch();
-    const token = user.token
-    const navigation = useNavigation();
-    
+    const token = user.token;
+
+    console.log(horsesForUpdate, "caballo para update")
+
     const initialHorseState = {
         name: '',
         type_horse_id: null,
@@ -77,16 +84,12 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
 
     const [fieldErrors, setFieldErrors] = useState({
         name: false,
-        last_name: false,
         type_horse_id: false,
         breed_id: false,
         birthdate: false,
         color: false,
         weight: false,
     });
-
-    const [allTypes, setAllTypes] = useState([]);
-    const [allBreeds, setAllBreeds] = useState([]);
 
     const toastConfig = {
         success: (props) => (
@@ -110,7 +113,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     const showToast = () => {
         Toast.show({
             type: 'success',
-            text1: 'Algo salio mal',
+            text1: 'Algo salió mal',
             text2: 'Debes completar todos los campos'
         });
     };
@@ -118,11 +121,13 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     const modalClose = () => {
         setModalVisible(false);
         setFieldErrors({});
+        setHorse(initialHorseState);
+        setSelectedImage(null);
     };
 
     const handleChange = (field, value) => {
-        setHorse((prevUserData) => ({
-            ...prevUserData,
+        setHorse((prevHorseData) => ({
+            ...prevHorseData,
             [field]: value,
         }));
 
@@ -141,7 +146,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     };
 
     const handleConfirm = (date) => {
-        handleChange("birthdate", date);
+        // Convertir la fecha a string ISO antes de guardarla en el estado
+        handleChange("birthdate", moment(date).toISOString());
         hideDatePicker();
     };
 
@@ -151,8 +157,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         if (!horse.name) {
             errors.name = 'Nombre es requerido';
         }
-        if (!horse.type_horse_id) {
-            errors.type_horse_id = 'Tipo es requerido';
+        if (!horse.breed_id) {
+            errors.breed_id = 'Raza es requerido';
         }
         if (!horse.birthdate) {
             errors.birthdate = 'Fecha de nacimiento es requerida';
@@ -182,7 +188,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     
         if (connexion) {
             try {
-                const response = await axios.put(`${API_URL}/api/horses/${updatedDetails.id}`, editedHorse, {
+                const response = await axios.put(`${API_URL}/horses/${updatedDetails.id}`, editedHorse, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`
                     }
@@ -198,112 +204,75 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
             }
         } else {
             setIsLoadingForm(false);
-            setModalVisible(!modalVisible)
+            setModalVisible(!modalVisible);
         }
     };
     
 
     const createHorse = async (newHorse) => {
         const connexion = await checkInternetConnection();
-        dispatch(setHorses(newHorse));
-        dispatch(setHorsesForUpdate(newHorse));
-        dispatch(setUpdate(true));
-
+    
+        // Convertir la fecha a string ISO antes de guardar en el estado y enviar los datos
+        const horseToCreate = {
+            ...newHorse,
+            birthdate: moment(newHorse.birthdate).toISOString()
+        };
+    
         if (connexion) {
             try {
-                const response = await axios.post(`${API_URL}/api/horses`, newHorse, {
+                const response = await axios.post(`${API_URL}/horses/add`, horseToCreate, {
                     headers: {
                         'Authorization': `Bearer ${user.token}`
                     }
                 });
-                dispatch(setHorses(response.data));
-                setHorseSubmit(!horseSubmit);
-                setModalVisible(!modalVisible);
+                console.log(response.data, "respuest de la llamada")
+                // Solo actualizar el estado con la respuesta del backend
+                dispatch(setHorses(response.data.horses));
             } catch (error) {
                 console.error('Error creating horse:', error);
             } finally {
                 setIsLoadingForm(false);
-                setModalVisible(!modalVisible)
+                setModalVisible(!modalVisible);
+                setHorseSubmit(!horseSubmit);
             }
         } else {
+            // Sin conexión: actualizar el estado localmente y marcar para actualización futura
+            dispatch(setHorses(horseToCreate));
+            dispatch(setHorsesForUpdate(horseToCreate));
+            dispatch(setUpdate(true));
             setIsLoadingForm(false);
-            setModalVisible(!modalVisible)
+            setModalVisible(!modalVisible);
         }
     };
 
     const handleSubmit = async () => {
-        const errors = validateFields()
+        const errors = validateFields();
+        console.log(errors)
         if (Object.keys(errors).length === 0) {
             setIsLoadingForm(true);
+            // Asegurarse de que la fecha se convierte a string antes de enviar los datos
+            const horseToSubmit = { ...horse, birthdate: moment(horse.birthdate).toISOString() };
             if (editHorse) {
-                await sendEditHorse(horse);
+                await sendEditHorse(horseToSubmit);
             } else {
-                await createHorse(horse);
+                await createHorse(horseToSubmit);
             }
         } else {
             showToast();
         }
     };
 
-    const fetchAllBreeds = async (type_horse_id) => {
-        try {
-            const data = {
-                type_horse: type_horse_id,
-            }
-
-            const response = await axios.get(`${API_URL}/breeds/get`, {
-                params: data,
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            });
-
-            if (response.data.status === "ok") {
-                setAllBreeds(response.data.breeds);
-            }
-        } catch (error) {
-            console.error('Error al obtener las razas', error);
-        }
-    };
-
-    /* useEffect(() => {
-        
-        if (horse.type_horse_id) {
-            fetchAllBreeds(horse.type_horse_id);
-        } else {
-            setAllBreeds([]);
-        }
-    }, [horse.type_horse_id]);
-
     useEffect(() => {
-       
         if (selectedImage)
             handleChange('image_profile', selectedImage);
-    }, [selectedImage]); */
+    }, [selectedImage]);
 
     useEffect(() => {
-      
         setHorse(editHorse ? editHorse : initialHorseState);
+        if (editHorse && editHorse.image_profile) {
+            setSelectedImage(editHorse.image_profile);
+        }
     }, [editHorse]);
-
-   /*  useEffect(() => {
-     
-        const fetchAllTypes = async () => {
-            try {
-                const response = await axios.get(`${API_URL}/types_horse/get`, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                if (response.data.status === "ok") {
-                    setAllTypes(response.data.types);
-                }
-            } catch (error) {
-                console.error('Error al obtener los horses', error);
-            }
-        };
-        fetchAllTypes();
-    }, []); */
 
     return (
         <View>
@@ -320,7 +289,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                             <Pressable
                                 style={styles.closeButton}
                                 onPress={() => modalClose()}>
-                                <Ionicons name="close-circle-outline" color="#808080" size={48} />
+                                <Ionicons name="close-circle-outline" color="#808080" size={32} />
                             </Pressable>
 
                             <View style={styles.titleContainer}>
@@ -332,19 +301,31 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                                     value={horse.name}
                                     onChangeText={(text) => handleChange("name", text)}
                                     error={fieldErrors.name}
+                                    placeholder="Nombre"
                                 />
+                                <View style={styles.imageRow}>
+                                    {selectedImage && (
+                                        <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+                                    )}
+                                    <TouchableOpacity style={styles.imagePickerButton} onPress={() => setModalImageVisible(true)}>
+                                        <Text style={styles.imagePickerButtonText}>
+                                            {selectedImage ? "Cambiar Imagen" : "Agregar Imagen"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
                                 <Text style={styles.labelPicker}>Tipo de raza</Text>
                                 <View style={[styles.pickerContainer, fieldErrors.breed_id ? styles.errorBorder : null]}>
                                     <Picker
                                         style={styles.picker}
-                                        onValueChange={(itemValue, itemIndex) =>
-                                            handleChange("breed_id", itemValue)
-                                        }
+                                        onValueChange={(itemValue, itemIndex) => {
+                                            const selectedBreed = breeds.find(breed => breed.id === parseInt(itemValue));
+                                            handleChange("breed_id", selectedBreed ? selectedBreed.id : null);
+                                        }}
                                         selectedValue={horse.breed_id ? horse.breed_id.toString() : ""}
                                     >
                                         <Picker.Item style={styles.pickerItem} label='Seleccionar' value='' />
-                                        {allBreeds.map((item) => (
-                                            <Picker.Item style={styles.pickerItem} key={item.key} label={item.value} value={item.key} />
+                                        {breeds.map((item) => (
+                                            <Picker.Item style={styles.pickerItem} key={item.id} label={item.name} value={item.id.toString()} />
                                         ))}
                                     </Picker>
                                 </View>
@@ -353,6 +334,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                                     value={horse.color}
                                     onChangeText={(text) => handleChange("color", text)}
                                     error={fieldErrors.color}
+                                    placeholder="Color"
                                 />
                                 <AnimatedTextInput
                                     label="Peso"
@@ -360,6 +342,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                                     onChangeText={(text) => handleChange("weight", text)}
                                     keyboardType='numeric'
                                     error={fieldErrors.weight}
+                                    placeholder="Peso"
                                 />
                                 <Text style={styles.labelPicker}>Fecha de nacimiento</Text>
                                 <View style={[styles.datePickerContainer, fieldErrors.birthdate ? styles.errorBorder : null]}>
@@ -404,6 +387,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     );
 };
 
+const { height, width } = Dimensions.get('window');
 const styles = StyleSheet.create({
     picker: {},
     centeredView: {
@@ -414,6 +398,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
+        maxHeight: height * 0.8,
         backgroundColor: 'white',
         borderRadius: 20,
         padding: 20,
@@ -431,17 +416,17 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
     },
     titleContainer: {
-        marginBottom: 20,
+        marginBottom: 10,
     },
     titleText: {
-        fontSize: 26,
+        fontSize: 20,
         color: "#808080",
     },
     formContainer: {
         width: '100%',
     },
     labelPicker: {
-        fontSize: 16,
+        fontSize: 14,
         color: 'gray',
         marginTop: 10,
         marginBottom: 5,
@@ -455,7 +440,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     inputContainer: {
-        marginVertical: 12,
+        marginVertical: 8,
         width: '100%',
         position: 'relative',
         backgroundColor: '#f0f0f0',
@@ -465,8 +450,8 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
     },
     textInput: {
-        height: 40,
-        fontSize: 16,
+        height: 36,
+        fontSize: 14,
         padding: 10,
         color: 'black',
         borderRadius: 10,
@@ -493,13 +478,13 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         backgroundColor: '#FF6F61',
-        padding: 15,
+        padding: 10,
         borderRadius: 10,
         alignItems: 'center',
     },
     submitButtonText: {
         color: 'white',
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: 'bold',
     },
     errorBorder: {
@@ -509,6 +494,34 @@ const styles = StyleSheet.create({
     connectionText: {
         textAlign: 'center',
         marginTop: 10,
+    },
+    label: {
+        position: 'absolute',
+        left: 10,
+        backgroundColor: '#f0f0f0',
+        paddingHorizontal: 5,
+    },
+    imageRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 10,
+    },
+    imagePickerButton: {
+        backgroundColor: '#FF6F61',
+        padding: 8,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginLeft: 10,
+    },
+    imagePickerButtonText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    imagePreview: {
+        width: 60,
+        height: 60,
+        borderRadius: 10,
     },
 });
 

@@ -2,6 +2,7 @@ import Axios from 'react-native-axios';
 import { API_URL } from '@env';
 import { setHorses } from '../redux/slices/horseSlice';
 
+
 export const getHorsesByUser = async (user, dispatch) => {
     try {
         const response = await Axios.get(`${API_URL}/horses/getByUser`, {

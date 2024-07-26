@@ -2,6 +2,7 @@ const sequelize = require('../sequelize');
 const Horse = require('../models/horseModel');
 const UserHorse = require('../models/userHorseModel');
 //const ImagesHorse = require('../models/imagePetModel');
+const Note = require('../models/noteModel')
 
 exports.getAllByUser = async (req, res) => {
   try {
@@ -15,6 +16,11 @@ exports.getAllByUser = async (req, res) => {
 
     const allHorses = await Horse.findAll({
       where: { id: horseIds },
+      include: [{
+        model: Note,
+        as: 'Notes',
+        order: [['date', 'DESC']]
+      }],
       order: [['createdAt', 'DESC']]
     });
 
@@ -31,37 +37,55 @@ exports.getAllByUser = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  /*const { name, last_name, type_pet_id, breed_id, birthdate, color, weight } = req.body;
-  const userId = req.user.id;
-
   try {
-    const imageUrl = req.imageUrl || 'pet_default.jpg';
+    const { name, type_horse_id, breed_id, image_profile, birthdate, color, weight } = req.body;
+    const userId = req.user.id;
 
-    const pet = await sequelize.transaction(async (t) => {
-      const createdPet = await Pet.create({
-        name: name,
-        last_name: last_name,
-        type_pet_id: type_pet_id,
-        breed_id: breed_id,
-        birthdate: birthdate,
-        color: color,
-        weight: weight,
-        image_profile: imageUrl
-      }, { transaction: t });
+    // Validar campos requeridos
+    if (!name || !breed_id || !birthdate || !color || !weight) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
 
-      await UserPet.create({ user_id: userId, pet_id: createdPet.id }, { transaction: t });
-
-      return createdPet;
+    // Crear un nuevo caballo
+    const newHorse = await Horse.create({
+      name,
+      type_horse_id,
+      breed_id,
+      image_profile,
+      birth: birthdate,
+      fur: color,
+      weight
     });
 
-    const response = {
-      status: 'ok',
-      pet: pet,
-    };
+    // Asociar el caballo con el usuario
+    await UserHorse.create({
+      user_id: userId,
+      horse_id: newHorse.id
+    });
 
-    res.status(201).json(response);
+    const userHorses = await UserHorse.findAll({
+      where: { user_id: userId },
+    });
+
+    const horseIds = userHorses.map((userHorse) => userHorse.horse_id);
+
+    const allHorses = await Horse.findAll({
+      where: { id: horseIds },
+      include: [{
+        model: Note,
+        as: 'Notes',
+        order: [['date', 'DESC']]
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+
+    res.status(201).json({
+      status: 'ok',
+      horses: allHorses
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Error al crear la mascota' });
-  }*/
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
 };

@@ -140,14 +140,14 @@ const styles = StyleSheet.create({
     left: 10,
   },
   addButtonContainer: {
-    position: 'absolute',
-    top: 700, // Ajusta este valor según sea necesario para que el botón quede más arriba
-    right: 130,
-    zIndex: 10, // Asegura que el botón esté por encima de otros elementos
-    backgroundColor: '#FF6F61',
-    padding: 10,
-    borderRadius: 10,
-  },
+  position: 'absolute',
+  bottom: 20,
+  right: 20,
+  backgroundColor: '#FF6F61',
+  borderRadius: 50,
+  padding: 10,
+  elevation: 5,
+},
   addButtonText: {
     color: '#FFF',
     fontSize: 16,
