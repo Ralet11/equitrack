@@ -10,6 +10,7 @@ import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/signUpScreen';
 import SignUpScreen2 from './screens/SingUpScreen2';
 import HorsesScreen from './screens/HorsesScreen';
+import ActivityScreen from './screens/ActivityScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ProfileEditScreen from './screens/ProfileEditScreen';
 import styles from './styles/NavigationStyles';
@@ -59,14 +60,14 @@ function TabNavigator() {
         options={{ tabBarLabel: 'Palenque' }}
       />
       <Tab.Screen
-        name="Historial"
-        component={ProfileScreen}
-        options={{ tabBarLabel: 'Historial' }}
+        name="Activity"
+        component={ActivityScreen}
+        options={{ tabBarLabel: 'Activity' }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Coach' }}
+        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );

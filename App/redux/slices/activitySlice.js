@@ -21,6 +21,7 @@ export const activitySlice = createSlice({
       };
       state.activities.push(activityWithTimestamp);
       state.activitiesForUpdate.push(activityWithTimestamp);
+      state.update = true;
       state.currentActivity = {};
     },
     clearAll: (state) => {

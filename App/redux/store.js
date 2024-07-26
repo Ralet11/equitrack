@@ -15,7 +15,7 @@ import rootReducer from './rootReducer';
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['user','horses', 'breeds', 'activityTypes','Activities'],
+  whitelist: ['user', 'theme', 'horses', 'breeds', 'activityTypes','activities'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

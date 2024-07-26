@@ -32,10 +32,6 @@ const Horse = sequelize.define('Horse', {
   image_profile: {
     type: DataTypes.STRING(50),
     allowNull: true,
-  },
-  weight: {
-    type: DataTypes.FLOAT,
-    allowNull: true,
   }
 });
 

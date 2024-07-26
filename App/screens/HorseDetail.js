@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native';
-import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from '../styles/HorseDetailsStyle';
 
@@ -19,21 +18,6 @@ const HorseDetail = ({ route, navigation }) => {
     { key: 'third', title: 'Measurements' },
   ]);
 
-  const renderScene = ({ route }) => {
-    switch (route.key) {
-      case 'first':
-        return <HorseDetailAverages horse={horse} />;
-      case 'second':
-        return <HoserDetailNotes notes={horse.Notes} selectedHorseId={horse.id} />;
-      case 'third':
-        return <HorseDetailMeasurements horse={horse} />;
-      default:
-        return null;
-    }
-  };
-
-  console.log(horse);
-
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
@@ -49,20 +33,7 @@ const HorseDetail = ({ route, navigation }) => {
           <Text style={styles.detail}><Text style={styles.detailLabel}>Birthdate: </Text>{horse.birthdate}</Text>
         </View>
       </View>
-      <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={initialLayout}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            indicatorStyle={styles.indicator}
-            style={styles.tabBar}
-            labelStyle={styles.label}
-          />
-        )}
-      />
+      
     </View>
   );
 };
