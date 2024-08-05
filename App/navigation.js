@@ -1,27 +1,28 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useColorScheme, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
 import LogoScreen from './screens/LogoScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignUpScreen from './screens/signUpScreen';
-import SignUpScreen2 from './screens/SingUpScreen2';
 import HorsesScreen from './screens/HorsesScreen';
 import ActivityScreen from './screens/ActivityScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ProfileEditScreen from './screens/ProfileEditScreen';
-import styles from './styles/NavigationStyles';
 import HorseDetail from './screens/HorseDetail';
-
+import styles from './styles/NavigationStyles';
+import colors from './theme/colors';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
-  const scheme = useColorScheme();
+
+  const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
+  const currentColors = isDarkTheme ? colors.dark : colors.light;
 
   return (
     <Tab.Navigator
@@ -36,51 +37,51 @@ function TabNavigator() {
             iconName = focused ? 'horse-variant' : 'horse-variant';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'account' : 'account';
-          }else if (route.name === 'Historial') {
+          } else if (route.name === 'Historial') {
             iconName = focused ? 'folder-multiple' : 'folder-multiple';
           }
 
           return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: 'tomato',
-        tabBarInactiveTintColor: 'gray',
-        tabBarStyle: scheme === 'dark' ? styles.tabBarDark : styles.tabBar,
-        tabBarLabelStyle: scheme === 'dark' ? styles.tabBarLabelDark : styles.tabBarLabel,
-        tabBarIconStyle: styles.tabBarIcon,
+        tabBarActiveTintColor: currentColors.txtPrimary,
+        tabBarInactiveTintColor: currentColors.disabled,
+        tabBarActiveBackgroundColor: currentColors.primary,
+        tabBarItemStyle: { margin: 20, borderRadius: 10 },
+        tabBarStyle: [styles.tabBar, { backgroundColor: currentColors.bgContainer }]
       })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: 'Home' }}
+        options={{ tabBarLabel: '' }}
       />
       <Tab.Screen
         name="Pet"
         component={HorsesScreen}
-        options={{ tabBarLabel: 'Palenque' }}
+        options={{ tabBarLabel: '' }}
       />
       <Tab.Screen
         name="Activity"
         component={ActivityScreen}
-        options={{ tabBarLabel: 'Activity' }}
+        options={{ tabBarLabel: '' }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
+        options={{ tabBarLabel: '' }}
       />
     </Tab.Navigator>
   );
 }
 
 const Navigation = () => {
-  const scheme = useColorScheme();
+
   const token = useSelector((state) => state.user.token);
   const initialRoute = token ? 'Main' : 'Login';
 
   return (
     <NavigationContainer>
-     <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor="#FFF" />
+      <StatusBar barStyle='dark-content' backgroundColor="#000" />
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{
@@ -95,7 +96,6 @@ const Navigation = () => {
         />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="SignUp2" component={SignUpScreen2} />
         <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
         <Stack.Screen name="HorseDetail" component={HorseDetail} />
       </Stack.Navigator>

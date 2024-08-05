@@ -4,7 +4,6 @@ import PagerView from 'react-native-pager-view';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import CustomHeader from '../components/CustomHeader';
 
 const Tab = createBottomTabNavigator();
 
@@ -78,7 +77,6 @@ const ActivityScreen = () => {
 
     return (
         <View style={styles.flexContainer}>
-            <CustomHeader />
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => handlePageChange(0)} style={activePage === 0 ? styles.activeTab : styles.inactiveTab}>
                     <Text style={activePage === 0 ? styles.activeTabText : styles.inactiveTabText}>Entrenamiento</Text>

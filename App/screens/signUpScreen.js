@@ -1,16 +1,25 @@
-import { useNavigation } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { View, Image, Text, TextInput, TouchableOpacity, Alert, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { useSelector } from 'react-redux';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { signUp } from '../api/signUpApi';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import colors from '../theme/colors';
 
 const SignUpScreen = () => {
 
-    const { t } = useTranslation();
     const navigation = useNavigation();
-    
+
+    const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
+    const currentColors = isDarkTheme ? colors.dark : colors.light;
+
+    const { t } = useTranslation();
+
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
     const [userData, setUserData] = useState({
         name: "",
         lastName: "",
@@ -18,8 +27,6 @@ const SignUpScreen = () => {
         password: "",
         confirmPassword: ""
     });
-
-    const [error, setError] = useState('');
 
     const handleChange = (field, value) => {
         setUserData((prevUserData) => ({
@@ -38,14 +45,13 @@ const SignUpScreen = () => {
 
     const handleSubmit = async () => {
         if (!passwordsMatch()) {
-            setError(t('passwordsDoNotMatch'));
+            Alert.alert('Error', t('Passwords do not match'));
             return;
         }
-        setError('');
-        
+
         try {
             const response = await signUp(userData, navigation);
-            
+
             if (response) {
                 Alert.alert("Te has registrado exitosamente");
                 // Vaciar los campos del formulario
@@ -63,100 +69,105 @@ const SignUpScreen = () => {
         }
     }
 
-    useEffect(() => {
-      
-        setError('');
-    }, [userData])
-
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <Image style={styles.backgroundImage} source={require("../assets/images/background.png")} />
-
+        <View style={[styles.container, { backgroundColor: currentColors.bg }]}>
+            <TouchableOpacity
+                style={[styles.backButton, { backgroundColor: currentColors.bgContainer }]}
+                onPress={() => navigation.navigate('Login')}
+            >
+                <Icon name="arrow-back" size={24} color={currentColors.txtPrimary} />
+            </TouchableOpacity>
             <View style={styles.contentContainer}>
                 <View style={styles.titleContainer}>
-                    <Animated.Text entering={FadeInUp.duration(1000).springify()} style={styles.titleText}>
-                        {t('register')}
+                    <Animated.Text entering={FadeInUp.duration(1000).springify()} style={[styles.titleText, { color: currentColors.txtPrimary }]}>
+                        {t('Sign Up')}
                     </Animated.Text>
                 </View>
 
-                <View style={styles.inputContainer}>
-                    <Animated.View entering={FadeInDown.duration(1000).springify()} style={styles.inputWrapper}>
+                <View style={[styles.inputContainer, { backgroundColor: currentColors.bgContainer }]}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Name')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder={t('name')}
-                            placeholderTextColor={"gray"}
                             onChangeText={(text) => handleChange("name", text)}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={userData.name}
-                            style={styles.input}
                         />
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Last Name')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder={t('lastName')}
-                            placeholderTextColor={"gray"}
                             onChangeText={(text) => handleChange("lastName", text)}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={userData.lastName}
-                            style={styles.input}
                         />
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()} style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Email')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder={t('email')}
-                            placeholderTextColor={"gray"}
                             onChangeText={(text) => handleChange("email", text)}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={userData.email}
-                            style={styles.input}
                         />
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(600).duration(1000).springify()} style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Password')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder={t('password')}
-                            placeholderTextColor={"gray"}
-                            secureTextEntry
+                            secureTextEntry={!passwordVisible}
                             onChangeText={(text) => handleChange("password", text)}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={userData.password}
-                            style={styles.input}
                         />
+                        <TouchableOpacity
+                            style={styles.iconWrapper}
+                            onPress={() => setPasswordVisible(!passwordVisible)}
+                        >
+                            <Icon
+                                name={passwordVisible ? "visibility" : "visibility-off"}
+                                size={24}
+                                color={currentColors.txtSecondary}
+                            />
+                        </TouchableOpacity>
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(600).duration(1000).springify()} style={[styles.inputWrapper, styles.lastInputWrapper]}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Confirm Password')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder={t('confirmPassword')}
-                            placeholderTextColor={"gray"}
-                            secureTextEntry
+                            secureTextEntry={!confirmPasswordVisible}
                             onChangeText={(text) => handleChange("confirmPassword", text)}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={userData.confirmPassword}
-                            style={styles.input}
                         />
+                        <TouchableOpacity
+                            style={styles.iconWrapper}
+                            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                        >
+                            <Icon
+                                name={confirmPasswordVisible ? "visibility" : "visibility-off"}
+                                size={24}
+                                color={currentColors.txtSecondary}
+                            />
+                        </TouchableOpacity>
                     </Animated.View>
+                </View>
 
-                    {error ? (
-                        <Animated.View entering={FadeInDown.delay(700).duration(1000).springify()} style={styles.errorContainer}>
-                            <Text style={styles.errorText}>{error}</Text>
-                        </Animated.View>
-                    ) : null}
+                <View style={{ flex: 1 }} />
 
-                    <Animated.View entering={FadeInDown.delay(800).duration(1000).springify()} style={styles.buttonContainer}>
+                <View style={styles.buttonContainer}>
+                    <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()}>
                         <TouchableOpacity
                             onPress={handleSubmit}
-                            style={[styles.registerButton, !isFormComplete() && styles.disabledButton]}
+                            style={[styles.button, !isFormComplete() && styles.disabledButton, { backgroundColor: currentColors.primary }]}
                             disabled={!isFormComplete()}
                         >
-                            <Text style={styles.registerButtonText}>
-                                {t('register')}
+                            <Text style={styles.buttonText}>
+                                {t('Sign Up')}
                             </Text>
                         </TouchableOpacity>
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(1000).duration(1000).springify()} style={styles.loginRedirectContainer}>
-                        <Text>{t('doYouAlreadyHaveAnAccount')}</Text>
-                        <TouchableOpacity onPress={() => navigation.push("Login")}>
-                            <Text style={styles.loginRedirectText}> {t('getInto')}</Text>
-                        </TouchableOpacity>
-                    </Animated.View>
                 </View>
             </View>
         </View>
@@ -165,82 +176,74 @@ const SignUpScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'white',
-        height: '100%',
+        flex: 1,
         width: '100%',
         position: 'relative',
     },
-    backgroundImage: {
-        height: '100%',
-        width: '100%',
-        position: 'absolute',
-        marginTop: -240,
-    },
     contentContainer: {
-        height: '100%',
-        width: '100%',
-        justifyContent: 'space-around',
-        paddingTop: 40,
-        paddingBottom: 10,
+        paddingTop: 20,
+        paddingLeft: 20,
+        paddingRight: 20,
+        flex: 1,
     },
     titleContainer: {
-        alignItems: 'center',
+        marginTop: 60
     },
     titleText: {
-        color: 'white',
-        fontWeight: 'bold',
-        letterSpacing: 2,
         fontSize: 24,
-        marginTop: -150,
+        fontWeight: '700',
+        marginBottom: 8,
+    },
+    subtitleText: {
+        fontSize: 16,
     },
     inputContainer: {
-        alignItems: 'center',
-        marginHorizontal: 16,
-        spaceBetween: 16,
+        marginTop: 36,
+        padding: 20,
+        borderRadius: 10,
+    },
+    label: {
+        fontWeight: '500',
+        fontSize: 16,
+        marginBottom: 5,
     },
     inputWrapper: {
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        padding: 20,
-        borderRadius: 20,
+        padding: 16,
+        borderRadius: 10,
+        marginBottom: 5,
         width: '100%',
-    },
-    lastInputWrapper: {
-        marginBottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     input: {
-        color: 'black',
+        flex: 1,
     },
-    errorContainer: {
-        width: '100%',
-    },
-    errorText: {
-        color: 'red',
-        textAlign: 'center',
+    iconWrapper: {
+        marginLeft: 10,
     },
     buttonContainer: {
-        width: '100%',
     },
-    registerButton: {
-        backgroundColor: '#38bdf8',
-        padding: 12,
-        borderRadius: 20,
-        marginBottom: 12,
+    button: {
+        paddingVertical: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 20
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: '700',
+        fontSize: 16,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        zIndex: 10,
+        padding: 10,
+        borderRadius: 10
     },
     disabledButton: {
         opacity: 0.5,
-    },
-    registerButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: 'white',
-        textAlign: 'center',
-    },
-    loginRedirectContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    loginRedirectText: {
-        color: '#0284c7',
     },
 });
 

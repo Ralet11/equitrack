@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navigation from './navigation';
 import { Provider } from 'react-redux';
 import { store, persistor } from './redux/store';
@@ -6,12 +6,17 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { useFonts } from 'expo-font';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './helpers/i18nHelper';
+import { registerBackgroundFetch } from './services/backgroundFetch';
 
 export default function App() {
 
   const [loaded] = useFonts({
     'Delius-Regular': require('./assets/fonts/Delius-Regular.ttf'),
   });
+
+  useEffect(() => {
+    registerBackgroundFetch();
+  }, []);
 
   if (!loaded) {
     return null;

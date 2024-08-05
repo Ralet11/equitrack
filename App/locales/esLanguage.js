@@ -1,5 +1,5 @@
 export default {
-    "login": "Iniciar sesión",
+    "Sign In": "Iniciar sesión",
     "register": "Registrarse",
     "name": "Nombre",
     "lastName": "Apellido",

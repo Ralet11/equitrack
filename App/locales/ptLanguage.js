@@ -1,5 +1,5 @@
 export default {
-    "login": "Entrar",
+    "Sign In": "Entrar",
     "register": "Registrar",
     "name": "Nome",
     "lastName": "Sobrenome",

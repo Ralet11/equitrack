@@ -1,21 +1,28 @@
-import { useNavigation } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
-import { View, Image, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../api/loginApi';
 import React, { useState } from 'react';
-import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
+import { loginUser } from '../api/loginApi';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import colors from '../theme/colors';
 
 const LoginScreen = () => {
-    const { t } = useTranslation();
     const navigation = useNavigation();
     const dispatch = useDispatch();
+
+    const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
+    const currentColors = isDarkTheme ? colors.dark : colors.light;
+
+    const { t } = useTranslation();
 
     const [loginUserState, setLoginUserState] = useState({
         email: "",
         password: ""
     });
+
+    const [passwordVisible, setPasswordVisible] = useState(false);
 
     const handleChange = (field, value) => {
         setLoginUserState((prevUserData) => ({
@@ -28,7 +35,7 @@ const LoginScreen = () => {
         try {
             const response = await loginUser(loginUserState.email, loginUserState.password, dispatch);
 
-            if(response) {
+            if (response) {
                 navigation.navigate('Main');
             }
         } catch (error) {
@@ -37,62 +44,72 @@ const LoginScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <Image style={styles.backgroundImage} source={require("../assets/images/background.png")} />
-
-            <View style={styles.lightContainer}>
-                <Animated.Image entering={FadeInUp.delay(200).duration(1000).springify()} style={styles.lightImage1} source={require("../assets/images/light.png")} />
-                <Animated.Image entering={FadeInUp.delay(400).duration(1000).springify()} style={styles.lightImage2} source={require("../assets/images/light.png")} />
-            </View>
-
+        <View style={[styles.container, { backgroundColor: currentColors.bg }]}>
             <View style={styles.contentContainer}>
                 <View style={styles.titleContainer}>
-                   <TouchableOpacity onPress={() => setLoginUserState({email: "ramiro.alet@gmail.com",
-        password: "123"})}>
-                   <Animated.Text entering={FadeInUp.duration(1000).springify()} style={styles.titleText}>
-                        {t('login')}
+                    <Animated.Text entering={FadeInUp.duration(1000).springify()} style={[styles.titleText, { color: currentColors.txtPrimary }]}>
+                        {t('Sign In')}
                     </Animated.Text>
-                   </TouchableOpacity>
+                    <Text style={[styles.subtitleText, { color: currentColors.txtSecondary }]}>{t('Welcome')}</Text>
                 </View>
 
-                <View style={styles.inputContainer}>
-                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={styles.inputWrapper}>
+                <View style={[styles.inputContainer, { backgroundColor: currentColors.bgContainer }]}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Email')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput }]}>
                         <TextInput
-                            placeholder='Email'
-                            placeholderTextColor={"gray"}
                             onChangeText={(text) => handleChange("email", text)}
-                            style={styles.input}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={loginUserState.email}
                         />
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.duration(1000).springify()} style={styles.inputWrapper}>
+                    <Text style={[styles.label, { color: currentColors.txtSecondary }]}>{t('Password')}</Text>
+                    <Animated.View entering={FadeInDown.delay(200).duration(1000).springify()} style={[styles.inputWrapper, { backgroundColor: currentColors.bgInput, marginBottom: 0 }]}>
                         <TextInput
-                            placeholder='Contraseña'
-                            placeholderTextColor={"gray"}
+                            secureTextEntry={!passwordVisible}
                             onChangeText={(text) => handleChange("password", text)}
-                            secureTextEntry
-                            style={styles.input}
+                            style={[styles.input, { color: currentColors.txtPrimary }]}
                             value={loginUserState.password}
                         />
+                        <TouchableOpacity
+                            style={styles.iconWrapper}
+                            onPress={() => setPasswordVisible(!passwordVisible)}
+                        >
+                            <Icon
+                                name={passwordVisible ? "visibility" : "visibility-off"}
+                                size={24}
+                                color={currentColors.txtSecondary}
+                            />
+                        </TouchableOpacity>
                     </Animated.View>
+                </View>
 
-                    <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()} style={styles.buttonContainer}>
-                        <TouchableOpacity onPress={handleSubmit} style={styles.loginButton}>
-                            <Text style={styles.loginButtonText}>
-                                Login
+                <View style={{ flex: 1 }} />
+
+                <View style={styles.buttonContainer}>
+
+                    <Text style={[styles.noAccountText, { color: currentColors.txtSecondary }]}>
+
+                    </Text>
+
+                    <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()}>
+                        <TouchableOpacity onPress={handleSubmit} style={[styles.button, { backgroundColor: currentColors.primary }]}>
+                            <Text style={styles.buttonText}>
+                                {t('Sign In')}
                             </Text>
                         </TouchableOpacity>
                     </Animated.View>
 
-                    <Animated.View entering={FadeInDown.delay(600).duration(1000).springify()} style={styles.signupContainer}>
-                        <Text>No tenés una cuenta?</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-                            <Text style={styles.signupText}> Registrate</Text>
+                    <Animated.View entering={FadeInDown.delay(400).duration(1000).springify()}>
+                        <TouchableOpacity onPress={() => navigation.navigate("SignUp")} style={styles.button}>
+                            <Text style={[styles.buttonText, { color: currentColors.primary }]}>
+                                {t('Sign Up')}
+                            </Text>
                         </TouchableOpacity>
                     </Animated.View>
+
                 </View>
+
             </View>
         </View>
     );
@@ -100,82 +117,66 @@ const LoginScreen = () => {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'white',
-        height: '100%',
+        flex: 1,
         width: '100%',
         position: 'relative',
     },
-    backgroundImage: {
-        height: '100%',
-        width: '100%',
-        position: 'absolute',
-    },
-    lightContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        width: '100%',
-        position: 'absolute',
-    },
-    lightImage1: {
-        height: 225,
-        width: 90,
-    },
-    lightImage2: {
-        height: 160,
-        width: 65,
-    },
     contentContainer: {
-        height: '100%',
-        width: '100%',
-        justifyContent: 'space-around',
-        paddingTop: 40,
-        paddingBottom: 10,
+        padding: 20,
+        flex: 1,
     },
     titleContainer: {
-        alignItems: 'center',
+        marginTop: 60
     },
     titleText: {
-        color: 'white',
-        fontWeight: 'bold',
-        letterSpacing: 2,
-        fontSize: 40,
+        fontSize: 24,
+        fontWeight: '700',
+        marginBottom: 8,
+    },
+    subtitleText: {
+        fontSize: 16,
     },
     inputContainer: {
-        alignItems: 'center',
-        marginHorizontal: 16,
-        spaceBetween: 16,
+        marginTop: 36,
+        padding: 20,
+        borderRadius: 10,
+    },
+    label: {
+        fontWeight: '500',
+        fontSize: 16,
+        marginBottom: 5,
     },
     inputWrapper: {
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        padding: 20,
-        borderRadius: 20,
+        padding: 16,
+        borderRadius: 10,
+        marginBottom: 16,
         width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     input: {
-        color: 'black',
+        flex: 1,
+    },
+    iconWrapper: {
+        marginLeft: 10,
     },
     buttonContainer: {
-        width: '100%',
     },
-    loginButton: {
-        backgroundColor: '#38bdf8',
-        padding: 12,
-        borderRadius: 20,
-        marginBottom: 12,
+    button: {
+        paddingVertical: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 10
     },
-    loginButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    buttonText: {
         color: 'white',
-        textAlign: 'center',
+        fontWeight: '700',
+        fontSize: 16,
     },
-    signupContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    signupText: {
-        color: '#0284c7',
-    },
+    noAccountText: {
+        textAlign: 'right',
+        marginBottom: 10,
+    }
 });
 
 export default LoginScreen;
