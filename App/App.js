@@ -14,9 +14,9 @@ export default function App() {
     'Delius-Regular': require('./assets/fonts/Delius-Regular.ttf'),
   });
 
-  useEffect(() => {
+  /*useEffect(() => {
     registerBackgroundFetch();
-  }, []);
+  }, []);*/
 
   if (!loaded) {
     return null;
