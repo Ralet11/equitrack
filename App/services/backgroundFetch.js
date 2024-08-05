@@ -1,12 +1,13 @@
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
+import { Alert } from 'react-native';
 
 const BACKGROUND_FETCH_TASK = 'background-fetch-task';
 
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     try {
         // Aquí colocas el código que deseas ejecutar en segundo plano
-        console.log('Realizando la tarea de background fetch...');
+        Alert.alert("Lo hace");
 
         return BackgroundFetch.BackgroundFetchResult.NewData;
     } catch (error) {
