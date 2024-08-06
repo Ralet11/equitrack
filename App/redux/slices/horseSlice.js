@@ -6,7 +6,6 @@ const initialState = {
   horsesForUpdate: [],
   update: false,
   deleteNotesId: []
-  // stats
 };
 
 export const horsesSlice = createSlice({

@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
 import LogoScreen from './screens/LogoScreen';
@@ -15,12 +15,12 @@ import ProfileEditScreen from './screens/ProfileEditScreen';
 import HorseDetail from './screens/HorseDetail';
 import styles from './styles/NavigationStyles';
 import colors from './theme/colors';
+import { SyncManager } from './helpers/syncHelper';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
-
   const isDarkTheme = useSelector((state) => state.theme.isDarkTheme);
   const currentColors = isDarkTheme ? colors.dark : colors.light;
 
@@ -75,13 +75,13 @@ function TabNavigator() {
 }
 
 const Navigation = () => {
-
   const token = useSelector((state) => state.user.token);
   const initialRoute = token ? 'Main' : 'Login';
 
   return (
     <NavigationContainer>
       <StatusBar barStyle='dark-content' backgroundColor="#000" />
+      <SyncManager /> 
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{

@@ -31,7 +31,7 @@ const HorsesScreen = ({ navigation }) => {
     } else {
       const deletedHorse = {
         ...horse,
-        delete: true,
+        deleted: true,
       };
       dispatch(deleteHorseById(horse.id));
       dispatch(setHorsesForUpdate(deletedHorse));

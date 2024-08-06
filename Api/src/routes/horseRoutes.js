@@ -9,5 +9,5 @@ const upload = multer();
 
 router.get('/getByUser', jwtMiddleware, horseController.getAllByUser);
 router.post('/add', jwtMiddleware, upload.single("image"), uploadAndDeleteS3Middleware('profiles/horses'), horseController.create);
-
+router.post('/sync', jwtMiddleware, horseController.syncHorses)
 module.exports = router;

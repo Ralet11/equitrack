@@ -1,6 +1,6 @@
 import Axios from 'react-native-axios';
 import { API_URL } from '@env';
-import { setHorses } from '../redux/slices/horseSlice';
+import { setHorses, setHorsesForUpdate, setUpdate } from '../redux/slices/horseSlice';
 
 
 export const getHorsesByUser = async (user, dispatch) => {
@@ -51,3 +51,31 @@ export const toggleFavorite = async (horseId, token) => {
         throw error;
     }
 };*/
+
+export const syncHorses = async (horsesForUpdate, user, dispatch) => {
+    console.log(user, "user3")
+
+
+ try {
+        const response = await Axios.post(`${API_URL}/horses/sync`,{horsesForUpdate},{
+            headers: {
+                'Authorization': `Bearer ${user.token}`
+            }
+        });
+        if (response.data.status === "ok") {
+            console.log(response.data, "RESPUESTA")
+            if (response.data.horses.length > 0) {
+                dispatch(setHorses(response.data.horses));
+                dispatch(setHorsesForUpdate([]))
+                dispatch(setUpdate(false))
+            }
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Error al obtener los horses', error);
+        return false;
+    }  
+
+}

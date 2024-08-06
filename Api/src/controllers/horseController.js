@@ -89,3 +89,72 @@ exports.create = async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 };
+
+exports.syncHorses = async (req, res) => {
+
+  console.log("en back sync")
+  const userId = req.user.id;
+  const { horsesForUpdate } = req.body;
+
+  try {
+    for (let horseData of horsesForUpdate) {
+      const { id, updated, deleted, ...horseInfo } = horseData;
+
+      if (deleted) {
+        // Eliminar caballo
+        const horse = await Horse.findOne({ where: { id } });
+        if (horse) {
+          await horse.destroy();
+        }
+      } else if (updated) {
+        // Editar caballo
+        const horse = await Horse.findOne({ where: { id } });
+        if (horse) {
+          await horse.update(horseInfo);
+        } else {
+          //agregar en una funcion para crear caballo
+          const newHorse = await Horse.create(horseInfo);
+          await UserHorse.create({
+            user_id: userId,
+            horse_id: newHorse.id,
+          });
+        }
+        //ver si tiene notas para agregar o actualizar
+        //si tiene notas -> llamar al controlador de nota
+        
+      } else {
+        // Crear nuevo caballo
+        const newHorse = await Horse.create(horseInfo);
+        await UserHorse.create({
+          user_id: userId,
+          horse_id: newHorse.id,
+        });
+      }
+    }
+
+    // Obtener todos los caballos actualizados
+    const userHorses = await UserHorse.findAll({
+      where: { user_id: userId },
+    });
+
+    const horseIds = userHorses.map((userHorse) => userHorse.horse_id);
+
+    const allHorses = await Horse.findAll({
+      where: { id: horseIds },
+      include: [{
+        model: Note,
+        as: 'Notes',
+        order: [['date', 'DESC']]
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.status(200).json({
+      status: 'ok',
+      horses: allHorses
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+};

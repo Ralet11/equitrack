@@ -76,7 +76,7 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         breed_id: null,
         image_profile: null,
         birthdate: '',
-        color: '',
+        fur: '',
         weight: null
     };
 
@@ -87,8 +87,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         type_horse_id: false,
         breed_id: false,
         birthdate: false,
-        color: false,
-        weight: false,
+        fur: false,
+
     });
 
     const toastConfig = {
@@ -109,6 +109,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
             />
         ),
     };
+
+    console.log(horse)
 
     const showToast = () => {
         Toast.show({
@@ -163,11 +165,8 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
         if (!horse.birthdate) {
             errors.birthdate = 'Fecha de nacimiento es requerida';
         }
-        if (!horse.color) {
-            errors.color = 'Color es requerido';
-        }
-        if (!horse.weight) {
-            errors.weight = 'Peso es requerido';
+        if (!horse.fur) {
+            errors.fur = 'Color es requerido';
         }
 
         setFieldErrors(errors);
@@ -176,73 +175,41 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
     };
 
     const sendEditHorse = async (updatedDetails) => {
-        const connexion = await checkInternetConnection();
-    
+
+
         const editedHorse = {
             ...updatedDetails,
         };
-    
-        dispatch(editHorseById({ id: updatedDetails.id, updatedHorse: editedHorse }));
-        dispatch(setHorsesForUpdate(editedHorse));
-        dispatch(setUpdate(true));
-    
-        if (connexion) {
-            try {
-                const response = await axios.put(`${API_URL}/horses/${updatedDetails.id}`, editedHorse, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                dispatch(setHorses(response.data));
-                setHorseSubmit(!horseSubmit);
-                setModalVisible(!modalVisible);
-             
-            } catch (error) {
-                console.error('Error editing horse:', error);
-            } finally {
-                setIsLoadingForm(false);
+
+        const editedHorseForUp = {
+            ...updatedDetails,
+            updated: true
             }
-        } else {
-            setIsLoadingForm(false);
-            setModalVisible(!modalVisible);
-        }
+
+        dispatch(editHorseById({ id: updatedDetails.id, updatedHorse: editedHorse }));
+        dispatch(setHorsesForUpdate(editedHorseForUp));
+        dispatch(setUpdate(true));
+        setIsLoadingForm(false);
+        setModalVisible(!modalVisible);
+
     };
-    
+
 
     const createHorse = async (newHorse) => {
-        const connexion = await checkInternetConnection();
-    
-        // Convertir la fecha a string ISO antes de guardar en el estado y enviar los datos
+        ;
+
+
         const horseToCreate = {
             ...newHorse,
             birthdate: moment(newHorse.birthdate).toISOString()
         };
-    
-        if (connexion) {
-            try {
-                const response = await axios.post(`${API_URL}/horses/add`, horseToCreate, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
-                console.log(response.data, "respuest de la llamada")
-                // Solo actualizar el estado con la respuesta del backend
-                dispatch(setHorses(response.data.horses));
-            } catch (error) {
-                console.error('Error creating horse:', error);
-            } finally {
-                setIsLoadingForm(false);
-                setModalVisible(!modalVisible);
-                setHorseSubmit(!horseSubmit);
-            }
-        } else {
-            // Sin conexión: actualizar el estado localmente y marcar para actualización futura
-            dispatch(setHorses(horseToCreate));
-            dispatch(setHorsesForUpdate(horseToCreate));
-            dispatch(setUpdate(true));
-            setIsLoadingForm(false);
-            setModalVisible(!modalVisible);
-        }
+
+        dispatch(setHorses(horseToCreate));
+        dispatch(setHorsesForUpdate(horseToCreate));
+        dispatch(setUpdate(true));
+        setIsLoadingForm(false);
+        setModalVisible(!modalVisible);
+
     };
 
     const handleSubmit = async () => {
@@ -331,19 +298,12 @@ const HorseModal = ({ modalVisible, setModalVisible, horseSubmit, setHorseSubmit
                                 </View>
                                 <AnimatedTextInput
                                     label="Color"
-                                    value={horse.color}
-                                    onChangeText={(text) => handleChange("color", text)}
-                                    error={fieldErrors.color}
+                                    value={horse.fur}
+                                    onChangeText={(text) => handleChange("fur", text)}
+                                    error={fieldErrors.fur}
                                     placeholder="Color"
                                 />
-                                <AnimatedTextInput
-                                    label="Peso"
-                                    value={horse.weight ? horse.weight.toString() : ""}
-                                    onChangeText={(text) => handleChange("weight", text)}
-                                    keyboardType='numeric'
-                                    error={fieldErrors.weight}
-                                    placeholder="Peso"
-                                />
+
                                 <Text style={styles.labelPicker}>Fecha de nacimiento</Text>
                                 <View style={[styles.datePickerContainer, fieldErrors.birthdate ? styles.errorBorder : null]}>
                                     <TouchableOpacity onPress={showDatePicker} style={styles.datePicker}>

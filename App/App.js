@@ -8,16 +8,14 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './helpers/i18nHelper';
 import { registerBackgroundFetch } from './services/backgroundFetch';
 
+
+
 export default function App() {
 
   const [loaded] = useFonts({
     'Delius-Regular': require('./assets/fonts/Delius-Regular.ttf'),
   });
-
-  /*useEffect(() => {
-    registerBackgroundFetch();
-  }, []);*/
-
+ 
   if (!loaded) {
     return null;
   }
