@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, TextInput, ScrollView, SafeAreaView, Modal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Animated, TextInput, ScrollView, SafeAreaView, Modal, Dimensions, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useDispatch, useSelector } from 'react-redux';
 import { LineChart } from 'react-native-chart-kit';
 import CircularProgress from 'react-native-circular-progress-indicator';
-import { setCurrentActivity, setMeasurement, pushCurrentCtivity } from '../redux/slices/activitySlice';
+import * as Location from 'expo-location';
+import { setCurrentActivity, setMeasurement, pushCurrentActivity } from '../redux/slices/activitySlice';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -15,7 +16,6 @@ const HomeScreen = () => {
 
   const dispatch = useDispatch();
 
-  console.log(horses)
   const [modalVisible, setModalVisible] = useState(true);
   const [selectedHorse, setSelectedHorse] = useState(null);
   const [isCollectingData, setIsCollectingData] = useState(false);
@@ -35,142 +35,213 @@ const HomeScreen = () => {
   const intervalRef = useRef(null);
   const animatedValue = useRef(new Animated.Value(1)).current;
 
+  const MIN_DISTANCE_THRESHOLD = 0.01; // Umbral mínimo de distancia en km
+  const MIN_ACCELERATION_THRESHOLD = 0.05; // Umbral mínimo de aceleración en m/s^2
+
   const handleSelectHorse = (horse) => {
     setSelectedHorse(horse);
   };
 
-  const handleToggleDataCollection = () => {
-    console.log("Entrando a handleToggleDataCollection");
-
+  const handleToggleDataCollection = async () => {
     if (!selectedHorse || mode === null) {
-        setModalVisible(true);
-        return;
+      setModalVisible(true);
+      return;
     }
 
     if (isCollectingData) {
-        console.log("Parando recolección de datos");
-        clearInterval(intervalRef.current);
-        setIsCollectingData(false);
+      clearInterval(intervalRef.current);
+      setIsCollectingData(false);
     } else {
-        if (isFinalized) {
-            console.log("Reiniciando datos porque la colección previa finalizó");
-            setIsFinalized(false);
-            setChukkerCount((prevCount) => prevCount + 1);
-            setTime(activityTime * 60); // Reset time for the new chukker
-            setCollectedData([]);
-            setIsDataCollected(false); // Clear the collected data display
-        }
+      if (isFinalized) {
+        setIsFinalized(false);
+        setChukkerCount((prevCount) => prevCount + 1);
+        setTime(activityTime * 60);
+        setCollectedData([]);
+        setIsDataCollected(false);
+      }
 
-        const selectedActivity = activityTypes.find((activity) => activity.id === mode);
-        if (!selectedActivity) {
-            console.log("Actividad seleccionada no encontrada");
-            return;
-        }
+      const selectedActivity = activityTypes.find((activity) => activity.id === mode);
+      if (!selectedActivity) {
+        return;
+      }
 
-        console.log("Actividad seleccionada:", selectedActivity);
+      const initialTime = parseInt(selectedActivity.time) * 60;
 
-        const initialTime = parseInt(selectedActivity.time) * 60;
-        console.log("Tiempo inicial:", initialTime);
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
 
-        if (mode === 1) {
-            console.log("Modo es 1, iniciando timer ascendente");
-            setTime(0); // Start at 00:00
-            intervalRef.current = setInterval(() => {
-                const newData = {
-                    time: new Date().toISOString(), // Ensure time is serializable
-                    latitude: Math.random() * 90,
-                    longitude: Math.random() * 180,
-                    speed: parseFloat((Math.random() * 10).toFixed(2)),
-                    distance: parseFloat((Math.random() * 0.1).toFixed(1)),
-                    acceleration: parseFloat((Math.random() * 0.5).toFixed(2)),
-                    duration: 1,
-                };
+      let lastPosition = null;
 
-                setSteps((prev) => prev + Math.floor(Math.random() * 10));
-                setDistance((prev) => prev + newData.distance);
-                setTime((prev) => prev + 1); // Increment time for ascending timer
-                setChartData((prev) => [...prev.slice(1), prev[prev.length - 1] + Math.floor(Math.random() * 10)]);
-                setProgress((prev) => (prev + 100 / initialTime) % 100);
-                setCollectedData((prev) => [...prev, newData]);
-            }, 1000);
-        } else if (mode === 0) {
-            console.log("Modo es 0, iniciando timer sin chukkers");
-            setTime(initialTime); // Start at initialTime for countdown
-            intervalRef.current = setInterval(() => {
-                const newData = {
-                    time: new Date().toISOString(), // Ensure time is serializable
-                    latitude: Math.random() * 90,
-                    longitude: Math.random() * 180,
-                    speed: parseFloat((Math.random() * 10).toFixed(2)),
-                    distance: parseFloat((Math.random() * 0.1).toFixed(1)),
-                    acceleration: parseFloat((Math.random() * 0.5).toFixed(2)),
-                    duration: 1,
-                };
+      const locationOptions = {
+        accuracy: Location.Accuracy.Highest, // Alta precisión
+        timeInterval: 500, // 500 ms
+        distanceInterval: 0.5, // 0.5 metros
+      };
 
-                setSteps((prev) => prev + Math.floor(Math.random() * 10));
-                setDistance((prev) => prev + newData.distance);
-                setTime((prevTime) => {
-                    if (prevTime > 1) {
-                        return prevTime - 1;
-                    } else {
-                        setCollectedData((prev) => [...prev, newData]);
-                        clearInterval(intervalRef.current);
-                        setIsCollectingData(false);
-                        setIsDataCollected(true);
-                        saveMeasurementData(time, newData); // Save measurement data with total time
-                        return initialTime;
-                    }
-                });
-                setChartData((prev) => [...prev.slice(1), prev[prev.length - 1] + Math.floor(Math.random() * 10)]);
-                setProgress((prev) => prev + 100 / initialTime);
-                setCollectedData((prev) => [...prev, newData]);
-            }, 1000);
-        } else {
-            console.log("Modo no es 0 ni 1, iniciando timer descendente con chukkers");
-            setTime(initialTime); // Start at initialTime for countdown
-            intervalRef.current = setInterval(() => {
-                const newData = {
-                    time: new Date().toISOString(), // Ensure time is serializable
-                    latitude: Math.random() * 90,
-                    longitude: Math.random() * 180,
-                    speed: parseFloat((Math.random() * 10).toFixed(2)),
-                    distance: parseFloat((Math.random() * 0.1).toFixed(1)),
-                    acceleration: parseFloat((Math.random() * 0.5).toFixed(2)),
-                    duration: 1,
-                };
+      if (mode === 1) {
+        setTime(0);
+        intervalRef.current = setInterval(async () => {
+          let location = await Location.getCurrentPositionAsync(locationOptions);
+          const newPosition = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speed: location.coords.speed || 0,
+          };
+          let newDistance = 0;
+          if (lastPosition) {
+            newDistance = getDistanceFromLatLonInKm(lastPosition, newPosition);
+          }
+          if (newDistance < MIN_DISTANCE_THRESHOLD) {
+            newDistance = 0;
+          }
+          const newAcceleration = (newPosition.speed - (lastPosition?.speed || 0)) / 1;
+          const filteredAcceleration = Math.abs(newAcceleration) < MIN_ACCELERATION_THRESHOLD ? 0 : newAcceleration;
+          const newData = {
+            time: new Date().toISOString(),
+            latitude: newPosition.latitude,
+            longitude: newPosition.longitude,
+            speed: newPosition.speed,
+            distance: newDistance,
+            acceleration: filteredAcceleration,
+            duration: 1,
+          };
 
-                setSteps((prev) => prev + Math.floor(Math.random() * 10));
-                setDistance((prev) => prev + newData.distance);
-                setTime((prevTime) => {
-                    if (prevTime > 1) {
-                        return prevTime - 1;
-                    } else {
-                        setCollectedData((prev) => [...prev, newData]);
-                        saveMeasurementData(time, newData); // Save measurement data with total time
-                        clearInterval(intervalRef.current);
-                        setIsCollectingData(false);
-                        setIsDataCollected(true);
+          setSteps((prev) => prev + Math.floor(Math.random() * 10));
+          setDistance((prev) => prev + newData.distance);
+          setTime((prev) => prev + 1);
+          setChartData((prev) => [...prev.slice(1), newData.distance]);
+          setProgress((prev) => (prev + 100 / initialTime) % 100);
+          setCollectedData((prev) => [...prev, newData]);
+          lastPosition = newPosition;
+        }, 500);
+      } else if (mode === 0) {
+        setTime(initialTime);
+        intervalRef.current = setInterval(async () => {
+          let location = await Location.getCurrentPositionAsync(locationOptions);
+          const newPosition = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speed: location.coords.speed || 0,
+          };
+          let newDistance = 0;
+          if (lastPosition) {
+            newDistance = getDistanceFromLatLonInKm(lastPosition, newPosition);
+          }
+          if (newDistance < MIN_DISTANCE_THRESHOLD) {
+            newDistance = 0;
+          }
+          const newAcceleration = (newPosition.speed - (lastPosition?.speed || 0)) / 1;
+          const filteredAcceleration = Math.abs(newAcceleration) < MIN_ACCELERATION_THRESHOLD ? 0 : newAcceleration;
+          const newData = {
+            time: new Date().toISOString(),
+            latitude: newPosition.latitude,
+            longitude: newPosition.longitude,
+            speed: newPosition.speed,
+            distance: newDistance,
+            acceleration: filteredAcceleration,
+            duration: 1,
+          };
 
-                        if (chukkerCount + 1 >= chukkers) {
-                            setIsFinalized(true);
-                        }
-                        return initialTime;
-                    }
-                });
-                setChartData((prev) => [...prev.slice(1), prev[prev.length - 1] + Math.floor(Math.random() * 10)]);
-                setProgress((prev) => prev + 100 / initialTime);
-                setCollectedData((prev) => [...prev, newData]);
-            }, 1000);
-        }
-        setIsCollectingData(true);
+          setSteps((prev) => prev + Math.floor(Math.random() * 10));
+          setDistance((prev) => prev + newData.distance);
+          setTime((prevTime) => {
+            if (prevTime > 1) {
+              return prevTime - 1;
+            } else {
+              setCollectedData((prev) => [...prev, newData]);
+              clearInterval(intervalRef.current);
+              setIsCollectingData(false);
+              setIsDataCollected(true);
+              saveMeasurementData(time, newData);
+              return initialTime;
+            }
+          });
+          setChartData((prev) => [...prev.slice(1), newData.distance]);
+          setProgress((prev) => prev + 100 / initialTime);
+          setCollectedData((prev) => [...prev, newData]);
+          lastPosition = newPosition;
+        }, 500);
+      } else {
+        setTime(initialTime);
+        intervalRef.current = setInterval(async () => {
+          let location = await Location.getCurrentPositionAsync(locationOptions);
+          const newPosition = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            speed: location.coords.speed || 0,
+          };
+          let newDistance = 0;
+          if (lastPosition) {
+            newDistance = getDistanceFromLatLonInKm(lastPosition, newPosition);
+          }
+          if (newDistance < MIN_DISTANCE_THRESHOLD) {
+            newDistance = 0;
+          }
+          const newAcceleration = (newPosition.speed - (lastPosition?.speed || 0)) / 1;
+          const filteredAcceleration = Math.abs(newAcceleration) < MIN_ACCELERATION_THRESHOLD ? 0 : newAcceleration;
+          const newData = {
+            time: new Date().toISOString(),
+            latitude: newPosition.latitude,
+            longitude: newPosition.longitude,
+            speed: newPosition.speed,
+            distance: newDistance,
+            acceleration: filteredAcceleration,
+            duration: 1,
+          };
+
+          setSteps((prev) => prev + Math.floor(Math.random() * 10));
+          setDistance((prev) => prev + newData.distance);
+          setTime((prevTime) => {
+            if (prevTime > 1) {
+              return prevTime - 1;
+            } else {
+              setCollectedData((prev) => [...prev, newData]);
+              saveMeasurementData(time, newData);
+              clearInterval(intervalRef.current);
+              setIsCollectingData(false);
+              setIsDataCollected(true);
+
+              if (chukkerCount + 1 >= chukkers) {
+                setIsFinalized(true);
+              }
+              return initialTime;
+            }
+          });
+          setChartData((prev) => [...prev.slice(1), newData.distance]);
+          setProgress((prev) => prev + 100 / initialTime);
+          setCollectedData((prev) => [...prev, newData]);
+          lastPosition = newPosition;
+        }, 500);
+      }
+      setIsCollectingData(true);
     }
+  };
+
+  const getDistanceFromLatLonInKm = (pos1, pos2) => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = deg2rad(pos2.latitude - pos1.latitude);
+    const dLon = deg2rad(pos2.longitude - pos1.longitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(pos1.latitude)) * Math.cos(deg2rad(pos2.latitude)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d;
+  };
+
+  const deg2rad = (deg) => {
+    return deg * (Math.PI / 180);
   };
 
   const saveMeasurementData = (totalTime, data) => {
     const measurementData = {
       horse_id: selectedHorse.id,
       chucker_number: chukkerCount + 1,
-      time: totalTime, // Total measured time in seconds
+      time: totalTime,
       latitude: data.latitude,
       longitude: data.longitude,
       speed: data.speed,
@@ -182,7 +253,7 @@ const HomeScreen = () => {
   };
 
   const handleClearProgress = () => {
-    dispatch(pushCurrentCtivity())
+    dispatch(pushCurrentActivity());
     setSteps(0);
     setDistance(0.0);
     setTime(0);
@@ -205,15 +276,15 @@ const HomeScreen = () => {
     setIsFinalized(true);
     if (collectedData.length > 0) {
       const latestData = collectedData[collectedData.length - 1];
-      saveMeasurementData(time, latestData); // Save the latest measurement data with total time
+      saveMeasurementData(time, latestData);
     }
   };
 
   const handleStartMeasurement = () => {
     setModalVisible(false);
     dispatch(setCurrentActivity({
-        type_activity_id: mode,
-        chuckker_quantity: chukkers,
+      type_activity_id: mode,
+      chuckker_quantity: chukkers,
     }));
     handleToggleDataCollection();
   };
@@ -228,7 +299,7 @@ const HomeScreen = () => {
     setMode(activityId);
     const selectedActivity = activityTypes.find((activity) => activity.id === activityId);
     setActivityTime(parseInt(selectedActivity.time));
-    setTime(parseInt(selectedActivity.time) * 60); // Set initial time for countdown
+    setTime(parseInt(selectedActivity.time) * 60);
     if (activityId === 2 || activityId === 3) {
       setChukkers('');
     }
@@ -304,7 +375,6 @@ const HomeScreen = () => {
       height={220}
       chartConfig={lineChartConfig}
       bezier
-      style={styles.chartStyle}
     />
   );
 

@@ -8,6 +8,7 @@ export const getActivityTypes = async (dispatch) => {
 
         if (response.data.status === "ok") {
             dispatch(setActivityTypes(response.data.activities));
+            console.log(response.data)
             return true;
         }
 
