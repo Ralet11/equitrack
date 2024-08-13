@@ -15,6 +15,8 @@ export const loginUser = async (email, password, dispatch) => {
     };
 
     try {
+
+        Alert.alert(`${API_URL}/auth/login`)
         const response = await axios.post(`${API_URL}/auth/login`, data);
 
         if (response.data.status === "ok") {
@@ -36,6 +38,7 @@ export const loginUser = async (email, password, dispatch) => {
 
         return false;
     } catch (error) {
+        Alert.alert(error)
         throw error;
     }
 };

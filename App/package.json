@@ -20,7 +20,6 @@
     "@react-navigation/native-stack": "^6.9.17",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.5",
-    "equitrack": "file:",
     "expo": "^51.0.17",
     "expo-font": "~12.0.9",
     "expo-image-picker": "~15.0.6",
